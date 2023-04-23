@@ -47,7 +47,7 @@ async def on_message(message):
             title=f"PETITION: {title}", description=f"**{content}\n{options}**", color=0x12ff51)
         sent = await message.channel.send(embed=embed)
 
-        POLL_OPTION_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
+        POLL_OPTION_EMOJIS = ["1️⃣", "2️⃣"]
         for i in range(options_count):
             await sent.add_reaction(POLL_OPTION_EMOJIS[i])
 
