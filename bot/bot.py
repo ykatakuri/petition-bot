@@ -4,6 +4,7 @@ from os import environ
 import aiohttp
 import config
 import discord
+import requests
 from discord.ext import tasks
 
 intents = discord.Intents.default()
@@ -15,28 +16,24 @@ POLL_OPTION_EMOJIS = ["1️⃣", "2️⃣"]
 
 SENT_MESSAGE_IDS = []
 
-# create a new petition
-async def create_petition(title, content, option_1, option_2, countdown):
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(f"{config.API_URL}/petitions", json={
-                "title": title,
-                "content": content,
-                "option_1": option_1,
-                "option_2": option_2,
-                "countdown": countdown
-            }) as response:
-                return await response.json()
-    except Exception as e:
-        return {"message": f"Something went wrong - {e}"}
-
+def create_petition(title, content, option_1, option_2, countdown):
+    data = {
+        "title": title,
+        "content": content,
+        "option_1": option_1,
+        "option_2": option_2,
+        "countdown": countdown
+        }
+    
+    requests.post(f'{config.API_URL}/petitions', json= data)
+    
 
 @client.event
 async def on_message(message):
     global POLL_OPTION_EMOJIS
-    if message.content.startswith("!create_petition"):
+    if message.content.startswith("!create"):
         params = message.content.split(";")
-        title = params[0].replace("!create_petition", "").strip()
+        title = params[0].replace("!create", "").strip()
         content = params[1].strip()
         options = [x.strip() for x in params[2].strip().split(",")]
         orig_options = options
@@ -50,13 +47,13 @@ async def on_message(message):
 
         error = validate_params(title, content, options, countdown)
 
+        create_petition(title, content, orig_options[0], orig_options[1], countdown)
+
         if error is not None:
             embed = discord.Embed(
                 title="Error", description=error, color=discord.Color.red())
             sent = await message.channel.send(embed=embed)
             return
-        
-        petition_id = await create_petition(title, content, options[0], options[1], countdown, False)
 
         for i in range(len(options)):
             options[i] = f"{POLL_OPTION_EMOJIS[i]} {options[i]}"
@@ -97,11 +94,14 @@ async def on_message(message):
                             petition_results_count[ind+1] = reaction.count - 1
                             if reaction.count > 1:
                                 total_reactions += 1
+                
 
                 petition_results_message = ""
                 for ind, count in enumerate(petition_results_count):
-                    perc = round(
-                        petition_results_count[ind+1]/total_reactions * 100)
+                    try:
+                        perc = round(petition_results_count[ind+1]/total_reactions * 100)
+                    except ZeroDivisionError:
+                        perc = 0
                     petition_results_message += f"{orig_options[ind]} ~ {perc}% ({petition_results_count[ind+1]} votes)\n"
 
                 embed = discord.Embed(
@@ -146,7 +146,6 @@ async def on_message(message):
                         await message.remove_reaction(payload.emoji.name, member)
                         break
 
-    
 
 def validate_params(title, content, options, countdown):
     if title == "":
@@ -166,5 +165,4 @@ def validate_params(title, content, options, countdown):
 
 
 if __name__ == "__main__":
-
     client.run(config.DISCORD_TOKEN)
