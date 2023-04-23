@@ -89,3 +89,8 @@ def update_petition(id):
     except Exception as e:
         return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
 
+
+# health check
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return make_response(jsonify({"message": "OK"}), 200)
