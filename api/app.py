@@ -3,7 +3,6 @@ from os import environ
 import psycopg2
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
-from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
