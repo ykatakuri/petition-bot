@@ -54,5 +54,15 @@ def create_petition():
     except Exception as e:
         return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
     
-
+# get all petitions 
+@app.route('/api/petitions', methods=['GET'])
+def get_petitions():
+    try:
+        petitions = Petitions.query.all()
+        if not petitions:
+            return make_response(jsonify({"message": "No petitions found"}), 404)
+        
+        return make_response(jsonify({"petitions": [petition.json() for petition in petitions]}), 200)
+    except Exception as e:
+        return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
 
