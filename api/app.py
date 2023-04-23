@@ -35,3 +35,24 @@ class Petitions(db.Model):
         }
     
 db.create_all()
+
+# create a new petition
+@app.route('/api/petitions', methods=['POST'])
+def create_petition():
+    try:
+        data = request.get_json()
+        petition = Petitions(
+            title=data['title'],
+            content=data['content'],
+            option_1=data['option_1'],
+            option_2=data['option_2'],
+            countdown=data['countdown']
+        )
+        db.session.add(petition)
+        db.session.commit()
+        return make_response(jsonify({"message": "Petition created successfully"}), 201)
+    except Exception as e:
+        return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
+    
+
+
