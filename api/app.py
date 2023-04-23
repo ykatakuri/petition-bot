@@ -65,4 +65,25 @@ def get_petitions():
         return make_response(jsonify({"petitions": [petition.json() for petition in petitions]}), 200)
     except Exception as e:
         return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
+    
+# update a petition
+@app.route('/api/petitions/<int:id>', methods=['PUT'])
+def update_petition(id):
+    try:
+        data = request.get_json()
+        petition = Petitions.query.filter_by(id=id).first()
+        if not petition:
+            return make_response(jsonify({"message": "Petition not found"}), 404)
+        
+        petition.title = data['title']
+        petition.content = data['content']
+        petition.option_1 = data['option_1']
+        petition.option_2 = data['option_2']
+        petition.countdown = data['countdown']
+        petition.is_closed = data['is_closed']
+        
+        db.session.commit()
+        return make_response(jsonify({"message": "Petition updated successfully"}), 200)
+    except Exception as e:
+        return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
 
