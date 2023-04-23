@@ -66,6 +66,18 @@ def get_petitions():
     except Exception as e:
         return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
     
+# get a single petition
+@app.route('/api/petitions/<int:id>', methods=['GET'])
+def get_petition(id):
+    try:
+        petition = Petitions.query.filter_by(id=id).first()
+        if not petition:
+            return make_response(jsonify({"message": "Petition not found"}), 404)
+        
+        return make_response(jsonify({"petition": petition.json()}), 200)
+    except Exception as e:
+        return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
+    
 # update a petition
 @app.route('/api/petitions/<int:id>', methods=['PUT'])
 def update_petition(id):
@@ -81,7 +93,7 @@ def update_petition(id):
         petition.option_2 = data['option_2']
         petition.countdown = data['countdown']
         petition.is_closed = data['is_closed']
-        
+
         db.session.commit()
         return make_response(jsonify({"message": "Petition updated successfully"}), 200)
     except Exception as e:
