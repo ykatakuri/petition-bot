@@ -1,7 +1,6 @@
 import datetime as dt
 from os import environ
 
-import aiohttp
 import config
 import discord
 import requests
@@ -104,8 +103,6 @@ async def on_message(message):
                 petition_results_message = ""
 
                 for ind, count in enumerate(petition_results_count):
-                    result_count_index_1 = petition_results_count[ind+1]
-                    result_count_index_2 = petition_results_count[ind+1]
                     try:
                         perc = round(petition_results_count[ind+1]/total_reactions * 100)
                     except ZeroDivisionError:
