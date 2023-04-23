@@ -4,6 +4,10 @@ bot/config.py
 **/config.py
 *config.py
 
+### Vscode ###
+.vscode/
+
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
