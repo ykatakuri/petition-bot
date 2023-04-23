@@ -5,8 +5,7 @@ Steps:
 - create .env file in the project root directory
 - create config.py in the bot directory
 - docker-compose up -d db
-- docker-compose up build -d
-- docker-compose up -d api
+- docker-compose up -d
 
 ## API 
 
