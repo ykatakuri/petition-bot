@@ -1,5 +1,7 @@
 import datetime as dt
+from os import environ
 
+import aiohttp
 import config
 import discord
 from discord.ext import tasks
@@ -12,6 +14,21 @@ client = discord.Client(intents=intents)
 POLL_OPTION_EMOJIS = ["1️⃣", "2️⃣"]
 
 SENT_MESSAGE_IDS = []
+
+# create a new petition
+async def create_petition(title, content, option_1, option_2, countdown):
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{config.API_URL}/petitions", json={
+                "title": title,
+                "content": content,
+                "option_1": option_1,
+                "option_2": option_2,
+                "countdown": countdown
+            }) as response:
+                return await response.json()
+    except Exception as e:
+        return {"message": f"Something went wrong - {e}"}
 
 
 @client.event
@@ -38,6 +55,8 @@ async def on_message(message):
                 title="Error", description=error, color=discord.Color.red())
             sent = await message.channel.send(embed=embed)
             return
+        
+        petition_id = await create_petition(title, content, options[0], options[1], countdown, False)
 
         for i in range(len(options)):
             options[i] = f"{POLL_OPTION_EMOJIS[i]} {options[i]}"
@@ -79,14 +98,14 @@ async def on_message(message):
                             if reaction.count > 1:
                                 total_reactions += 1
 
-                poll_results_message = ""
+                petition_results_message = ""
                 for ind, count in enumerate(petition_results_count):
                     perc = round(
                         petition_results_count[ind+1]/total_reactions * 100)
-                    poll_results_message += f"{orig_options[ind]} ~ {perc}% ({petition_results_count[ind+1]} votes)\n"
+                    petition_results_message += f"{orig_options[ind]} ~ {perc}% ({petition_results_count[ind+1]} votes)\n"
 
                 embed = discord.Embed(
-                    title=f"RESULTATS DE LA PETITION: {title}", description=poll_results_message, color=0x13a6f0)
+                    title=f"RESULTATS DE LA PETITION: {title}", description=petition_results_message, color=0x13a6f0)
                 await message.channel.send(embed=embed)
 
                 await sent_message.delete()
@@ -127,6 +146,7 @@ async def on_message(message):
                         await message.remove_reaction(payload.emoji.name, member)
                         break
 
+    
 
 def validate_params(title, content, options, countdown):
     if title == "":
