@@ -25,8 +25,12 @@ def create_petition(title, content, option_1, option_2, countdown):
         "countdown": countdown
         }
     
-    requests.post(f'{config.API_URL}/petitions', json= data)
+    response = requests.post(f'{config.API_URL}/petitions', json= data)
+    return response.json()
     
+
+def update_petition(petition_id, data):
+    requests.patch(f'{config.API_URL}/petitions/{petition_id}', json= data)
 
 @client.event
 async def on_message(message):
@@ -47,7 +51,8 @@ async def on_message(message):
 
         error = validate_params(title, content, options, countdown)
 
-        create_petition(title, content, orig_options[0], orig_options[1], countdown)
+        result = create_petition(title, content, orig_options[0], orig_options[1], countdown)
+        petition_id = result['id']
 
         if error is not None:
             embed = discord.Embed(
@@ -97,12 +102,21 @@ async def on_message(message):
                 
 
                 petition_results_message = ""
+
                 for ind, count in enumerate(petition_results_count):
+                    result_count_index_1 = petition_results_count[ind+1]
+                    result_count_index_2 = petition_results_count[ind+1]
                     try:
                         perc = round(petition_results_count[ind+1]/total_reactions * 100)
                     except ZeroDivisionError:
                         perc = 0
                     petition_results_message += f"{orig_options[ind]} ~ {perc}% ({petition_results_count[ind+1]} votes)\n"
+
+                update_petition(petition_id, {
+                    "is_closed": True,
+                    "votes_option_1": petition_results_count[1],
+                    "votes_option_2": petition_results_count[2]
+                })
 
                 embed = discord.Embed(
                     title=f"RESULTATS DE LA PETITION: {title}", description=petition_results_message, color=0x13a6f0)
