@@ -7,6 +7,16 @@ services:
     build: ./bot
     depends_on:
       - api
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl --fail http://${API_URL}/health || exit 1"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   api:
     container_name: api
@@ -18,6 +28,16 @@ services:
       - DB_URL=${DB_URL}
     depends_on:
       - db
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl --fail http://${API_URL}/health || exit 1"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   db:
     container_name: db
@@ -31,6 +51,12 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   web:
     container_name: web
@@ -40,6 +66,12 @@ services:
       - "8080:80"
     depends_on:
       - api
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://${WEB_URL}/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 volumes:
   pgdata: {}

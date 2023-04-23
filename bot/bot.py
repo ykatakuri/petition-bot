@@ -31,6 +31,7 @@ def create_petition(title, content, option_1, option_2, countdown):
 def update_petition(petition_id, data):
     requests.patch(f'{config.API_URL}/petitions/{petition_id}', json= data)
 
+
 @client.event
 async def on_message(message):
     global POLL_OPTION_EMOJIS
