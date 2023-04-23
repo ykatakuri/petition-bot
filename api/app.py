@@ -20,6 +20,8 @@ class Petitions(db.Model):
     option_1 = db.Column(db.Text, nullable=False)
     option_2 = db.Column(db.Text, nullable=False)
     countdown = db.Column(db.Integer, nullable=False)
+    votes_option_1 = db.Column(db.Integer, default=0)
+    votes_option_2 = db.Column(db.Integer, default=0)
     is_closed = db.Column(db.Boolean, default=False)
 
     def json(self):
@@ -30,6 +32,8 @@ class Petitions(db.Model):
             "option_1": self.option_1,
             "option_2": self.option_2,
             "countdown": self.countdown,
+            "votes_option_1": self.votes_option_1,
+            "votes_option_2": self.votes_option_2,
             "is_closed": self.is_closed
         }
     
@@ -49,7 +53,7 @@ def create_petition():
         )
         db.session.add(petition)
         db.session.commit()
-        return make_response(jsonify({"message": "Petition created successfully"}), 201)
+        return make_response(jsonify({"id": petition.id}), 201)
     except Exception as e:
         return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
     
@@ -78,7 +82,7 @@ def get_petition(id):
         return make_response(jsonify({"message": f"Something went wrong - {e}"}), 500)
     
 # update a petition
-@app.route('/api/petitions/<int:id>', methods=['PUT'])
+@app.route('/api/petitions/<int:id>', methods=['PATCH'])
 def update_petition(id):
     try:
         data = request.get_json()
@@ -86,11 +90,8 @@ def update_petition(id):
         if not petition:
             return make_response(jsonify({"message": "Petition not found"}), 404)
         
-        petition.title = data['title']
-        petition.content = data['content']
-        petition.option_1 = data['option_1']
-        petition.option_2 = data['option_2']
-        petition.countdown = data['countdown']
+        petition.votes_option_1 = data['votes_option_1']
+        petition.votes_option_2 = data['votes_option_2']
         petition.is_closed = data['is_closed']
 
         db.session.commit()
