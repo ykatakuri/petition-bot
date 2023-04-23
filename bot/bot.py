@@ -1,7 +1,10 @@
 import datetime as dt
+from os import environ
 
+import aiohttp
 import config
 import discord
+import requests
 from discord.ext import tasks
 
 intents = discord.Intents.default()
@@ -13,13 +16,28 @@ POLL_OPTION_EMOJIS = ["1️⃣", "2️⃣"]
 
 SENT_MESSAGE_IDS = []
 
+def create_petition(title, content, option_1, option_2, countdown):
+    data = {
+        "title": title,
+        "content": content,
+        "option_1": option_1,
+        "option_2": option_2,
+        "countdown": countdown
+        }
+    
+    response = requests.post(f'{config.API_URL}/petitions', json= data)
+    return response.json()
+    
+
+def update_petition(petition_id, data):
+    requests.patch(f'{config.API_URL}/petitions/{petition_id}', json= data)
 
 @client.event
 async def on_message(message):
     global POLL_OPTION_EMOJIS
-    if message.content.startswith("!create_petition"):
+    if message.content.startswith("!create"):
         params = message.content.split(";")
-        title = params[0].replace("!create_petition", "").strip()
+        title = params[0].replace("!create", "").strip()
         content = params[1].strip()
         options = [x.strip() for x in params[2].strip().split(",")]
         orig_options = options
@@ -32,6 +50,9 @@ async def on_message(message):
             pass
 
         error = validate_params(title, content, options, countdown)
+
+        result = create_petition(title, content, orig_options[0], orig_options[1], countdown)
+        petition_id = result['id']
 
         if error is not None:
             embed = discord.Embed(
@@ -47,7 +68,7 @@ async def on_message(message):
             title=f"PETITION: {title}", description=f"**{content}\n{options}**", color=0x12ff51)
         sent = await message.channel.send(embed=embed)
 
-        POLL_OPTION_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
+        POLL_OPTION_EMOJIS = ["1️⃣", "2️⃣"]
         for i in range(options_count):
             await sent.add_reaction(POLL_OPTION_EMOJIS[i])
 
@@ -78,15 +99,27 @@ async def on_message(message):
                             petition_results_count[ind+1] = reaction.count - 1
                             if reaction.count > 1:
                                 total_reactions += 1
+                
 
-                poll_results_message = ""
+                petition_results_message = ""
+
                 for ind, count in enumerate(petition_results_count):
-                    perc = round(
-                        petition_results_count[ind+1]/total_reactions * 100)
-                    poll_results_message += f"{orig_options[ind]} ~ {perc}% ({petition_results_count[ind+1]} votes)\n"
+                    result_count_index_1 = petition_results_count[ind+1]
+                    result_count_index_2 = petition_results_count[ind+1]
+                    try:
+                        perc = round(petition_results_count[ind+1]/total_reactions * 100)
+                    except ZeroDivisionError:
+                        perc = 0
+                    petition_results_message += f"{orig_options[ind]} ~ {perc}% ({petition_results_count[ind+1]} votes)\n"
+
+                update_petition(petition_id, {
+                    "is_closed": True,
+                    "votes_option_1": petition_results_count[1],
+                    "votes_option_2": petition_results_count[2]
+                })
 
                 embed = discord.Embed(
-                    title=f"RESULTATS DE LA PETITION: {title}", description=poll_results_message, color=0x13a6f0)
+                    title=f"RESULTATS DE LA PETITION: {title}", description=petition_results_message, color=0x13a6f0)
                 await message.channel.send(embed=embed)
 
                 await sent_message.delete()
@@ -146,5 +179,4 @@ def validate_params(title, content, options, countdown):
 
 
 if __name__ == "__main__":
-
     client.run(config.DISCORD_TOKEN)
