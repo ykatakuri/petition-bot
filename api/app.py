@@ -20,7 +20,7 @@ class Petitions(db.Model):
     option_1 = db.Column(db.Text, nullable=False)
     option_2 = db.Column(db.Text, nullable=False)
     countdown = db.Column(db.Integer, nullable=False)
-    is_closed = db.Column(db.Text, default=False)
+    is_closed = db.Column(db.Boolean, default=False)
 
     def json(self):
         return {
