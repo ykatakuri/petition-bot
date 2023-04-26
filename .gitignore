@@ -7,6 +7,9 @@ bot/config.py
 ### Vscode ###
 .vscode/
 
+### SSL Certificates ###
+*.crt
+*.key
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

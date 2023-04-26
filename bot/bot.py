@@ -162,8 +162,6 @@ async def on_message(message):
 def validate_params(title, content, options, countdown):
     if title == "":
         return "Le nom de la pétition ne doit pas être vide"
-    if len(title) >= 20:
-        return "Le nom ne doit pas dépasser 15 caractères"
     if content == "":
         return "La question ne doit pas être vide"
     if len(options) < 2:
