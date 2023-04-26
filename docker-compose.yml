@@ -13,7 +13,7 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
+          "CMD",
           "curl --fail http://${API_URL}/health || exit 1"
         ]
       start_period: ${start_period}
@@ -37,7 +37,7 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
+          "CMD",
           "curl --fail http://${API_URL}/health || exit 1"
         ]
       start_period: ${start_period}
