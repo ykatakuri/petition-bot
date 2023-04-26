@@ -5,25 +5,31 @@ services:
     container_name: bot
     image: yannxy/bot:1.0.0
     build: ./bot
+    restart: always
     depends_on:
       - api
+    env_file:
+      - .env
     healthcheck:
       test:
         [
           "CMD-SHELL",
           "curl --fail http://${API_URL}/health || exit 1"
         ]
-      interval: 30s
-      timeout: 10s
+      start_period: ${start_period}
+      interval: ${interval}
+      timeout: ${timeout}
       retries: 3
-      start_period: 30s
 
   api:
     container_name: api
     image: yannxy/bot-api:1.0.0
     build: ./api
+    restart: always
     ports:
       - "4000:4000"
+    env_file:
+      - .env
     environment:
       - DB_URL=${DB_URL}
     depends_on:
@@ -34,10 +40,10 @@ services:
           "CMD-SHELL",
           "curl --fail http://${API_URL}/health || exit 1"
         ]
-      interval: 30s
-      timeout: 10s
+      start_period: ${start_period}
+      interval: ${interval}
+      timeout: ${timeout}
       retries: 3
-      start_period: 30s
 
   db:
     container_name: db
@@ -45,6 +51,8 @@ services:
     restart: always
     ports:
       - "5432:5432"
+    env_file:
+      - .env
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -53,25 +61,28 @@ services:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}" ]
-      interval: 30s
-      timeout: 10s
+      start_period: ${start_period}
+      interval: ${interval}
+      timeout: ${timeout}
       retries: 3
-      start_period: 30s
 
   web:
     container_name: web
     image: yannxy/bot-web:1.0.0
     build: ./web
+    restart: always
     ports:
       - "8080:80"
     depends_on:
       - api
+    env_file:
+      - .env
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://${WEB_URL}/health" ]
-      interval: 30s
-      timeout: 10s
+      start_period: ${start_period}
+      interval: ${interval}
+      timeout: ${timeout}
       retries: 3
-      start_period: 30s
 
 volumes:
   pgdata: {}
